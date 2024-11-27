@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
 ## Since we will using AWS lambda to invoke LLM, we need to write a handler
 def lambda_handler(event, context):
-    # TODO implement
+    # TODO implement body
     event=json.loads(event['body'])
     #@TODO: Update the event after the API Gateway configuration
     blogtopic=event['blog_topic']
