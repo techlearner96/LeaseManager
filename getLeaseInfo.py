@@ -1,3 +1,5 @@
+# This will be lambda which should will invoked for getting responses for the query.
+
 import json
 import os
 import sys
@@ -59,7 +61,66 @@ def get_response_llm(llm,vectorstore_faiss,query):
     answer=qa({"query":query})
     return answer['result']
 
-##Only for local testing. We will using lambda to invoke the LLM via Bedrock
+## This file will contain the code to read the pdf and generate the vectors
+## for the generating vector we will be using FAISS and we will store the FAISS files in S3 on AWS
+
+## Data Ingestion
+
+import numpy as np
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFDirectoryLoader
+
+## We will be suing Titan Embeddings Model To generate Embedding
+
+from langchain_community.embeddings import BedrockEmbeddings
+from langchain.llms.bedrock import Bedrock
+
+# Vector Embedding And Vector Store
+
+from langchain.vectorstores import FAISS
+
+
+bedrock=boto3.client(service_name="bedrock-runtime")
+#@TODO Update the model name accordingly
+bedrock_embeddings=BedrockEmbeddings(model_id="amazon.titan-embed-text-v1",client=bedrock)
+
+
+
+## there may be multiple faiss files int the S3 bucket. We want the lastest ones
+def read_faiss_s3(s3_key,s3_bucket):
+
+    # List objects in the specified S3 bucket
+    response = s3.list_objects_v2(Bucket=bucket_name)
+    files = response.get('Contents', [])
+    # Sort files by the LastModified attribute
+    files.sort(key=lambda x: x['LastModified'], reverse=True)
+    # Get the latest file
+    latest_file = files[0]['Key']
+    return latest_file
+    
+## Since we will using AWS lambda to invoke LLM, we need to write a handler
+def lambda_handler(event, context):
+    # TODO implement body
+    event=json.loads(event['body'])
+    #@TODO: Update the event after the API Gateway configuration
+    query=event['blog_topic']
+
+    llm= get_claude_llm()
+    #@TODO: Set the S3_Key and S3_Bucket
+    vectorstore_faiss= read_faiss_s3(s3_key,s3_bucket)
+
+    response=  get_response_llm(llm,vectorstore_faiss,query):
+
+    if get_response_llm:
+        print("LLM invocation successful")
+
+    else:
+        print("No blog was generated")
+
+    return json.dumps(response)
+
+
+    ##Only for local testing. We will using lambda to invoke the LLM via Bedrock
 def main():
     st.set_page_config("Lease Manager")
     
@@ -91,30 +152,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-## Since we will using AWS lambda to invoke LLM, we need to write a handler
-def lambda_handler(event, context):
-    # TODO implement body
-    event=json.loads(event['body'])
-    #@TODO: Update the event after the API Gateway configuration
-    blogtopic=event['blog_topic']
-
-    generate_blog=blog_generate_using_bedrock(blogtopic=blogtopic)
-
-    if generate_blog:
-        current_time=datetime.now().strftime('%H%M%S')
-        s3_key=f"blog-output/{current_time}.txt"
-        s3_bucket='aws_bedrock_course1'
-        save_blog_details_s3(s3_key,s3_bucket,generate_blog)
-
-
-    else:
-        print("No blog was generated")
-
-    return{
-        'statusCode':200,
-        'body':json.dumps('Blog Generation is completed')
-    }
-
-    
