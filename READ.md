@@ -10,3 +10,4 @@ Code Structure (so far):
  The 2 lambda's created so far are :
  1. getLeaseInfo.py - this lambda will contain the code required to get the query from user, read the FAISS and then invoke the LLM and finally return the response to the user.
  2. vectorGenerator.py- this lambda will contain the code to read the document, split it and generate the FAISS vectors and store them in S3 bucket.
+ 3. leaseManagerUI.py - it will contain the streamlit based code which will be deployed on either ECS or on EC2 instance (TBD)
