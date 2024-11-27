@@ -119,36 +119,3 @@ def lambda_handler(event, context):
 
     return json.dumps(response)
 
-
-    ##Only for local testing. We will using lambda to invoke the LLM via Bedrock
-def main():
-    st.set_page_config("Lease Manager")
-    
-    st.header("Lease Manager")
-
-    user_question = st.text_input("Ask a Question Related With Leases")
-
-    with st.sidebar:
-        st.title("Add More Leases and update system:")
-        
-        ## this button will not allow you to add the files rather it will update the vector store
-        ## @TODO: Perhaps we should provide a button to add files into the S3 bucket here.
-        if st.button("Update DB"):
-            with st.spinner("Processing..."):
-                docs = data_ingestion()
-                get_vector_store(docs)
-                st.success("Done")
-
-
-    if st.button("Llama2 Output"):
-        with st.spinner("Processing..."):
-           faiss_index= vg.read_faiss_s3(s3_key,s3_bucket)
-           # faiss_index = FAISS.load_local("faiss_index", bedrock_embeddings)
-            llm=get_llama2_llm()
-            
-            #faiss_index = get_vector_store(docs)
-            st.write(get_response_llm(llm,faiss_index,user_question))
-            st.success("Done")
-
-if __name__ == "__main__":
-    main()
