@@ -5,6 +5,7 @@ import json
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain.vectorstores import FAISS
+from io import BytesIO
 
 s3_key="faiss_index"
 s3_bucket="capleasemanager/lease"
@@ -12,6 +13,7 @@ s3_bucket="capleasemanager/lease"
 #Read the documents
 def read_documents_from_s3(bucket_name):
     # List objects in the bucket
+    s3=boto3.client("s3")
     response = s3.list_objects_v2(Bucket=bucket_name)
     documents = []
     
