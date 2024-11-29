@@ -6,6 +6,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain.vectorstores import FAISS
 from io import BytesIO
+import boto3
 
 s3_key="faiss_index"
 s3_bucket="capleasemanager/lease"
@@ -34,24 +35,26 @@ def data_splitter(documents):
     split_docs=text_splitter.split_documents(documents)
     return split_docs
 
-## Generate the faiss vecotrs from the documents
+   # Generate the FAISS vectors from the documents
 def generate_faiss(split_docs):
-    vectorstore_faiss=FAISS.from_documents(
-        docs,
-        bedrock_embeddings
+    vectorstore_faiss = FAISS.from_documents(
+        split_docs,
+        bedrock_embeddings  # Ensure bedrock_embeddings is defined
     )
     return vectorstore_faiss
 
-## save the generated faiss vectors in S3
-def save_faiss_s3(faiss_embed):
-    s3=boto3.client('s3')
+# Save the generated FAISS vectors in S3
+def save_faiss_s3(faiss_index):
+    s3 = boto3.client('s3')
+    faiss_bytes = BytesIO()
+    faiss_index.save_index(faiss_bytes)
+    faiss_bytes.seek(0)
 
     try:
-        s3.put_object(Bucket = s3_bucket, Key = s3_key, Body =faiss_embed )
-        print("faiss saved to s3")
-
+        s3.put_object(Bucket=s3_bucket, Key=s3_key, Body=faiss_bytes.getvalue())
+        print("FAISS index saved to S3")
     except Exception as e:
-        print("Error when saving the code to s3")
+        print(f"Error when saving the FAISS index to S3: {e}")
 
 
 def lambda_handler(event, context):
