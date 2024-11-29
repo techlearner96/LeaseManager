@@ -1,3 +1,6 @@
 boto3
 awscli
+langchain
+numpy
+pytesseract
 
