@@ -3,7 +3,7 @@ import pytesseract
 from PIL import Image
 
 # Path to the folder containing PNG files
-folder_path = 'path_to_your_folder'
+folder_path = '/testdata/'
 
 # List to store the text from each image
 text_list = []
