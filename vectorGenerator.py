@@ -70,22 +70,15 @@ def get_documents_from_s3(s3_bucket, prefix):
 
 # read the texts from the documents
 def read_text_from_files(pngfiles):
-    text_list=[]
-    folder_path='testdata/'
-    # Iterate over each file in the folder
+    text_list = []
+    folder_path = 'testdata/'
     for filename in os.listdir(folder_path):
         if filename.endswith('.png'):
-            # Open the image file
             img_path = os.path.join(folder_path, filename)
             img = Image.open(img_path)
-        
-            # Use pytesseract to extract text from the image
             text = pytesseract.image_to_string(img)
-        
-            # Append the extracted text to the list
             text_list.append(text)
-            return text_list
-
+    return text_list
 
 ## This function will read the data and  split the documents into chunk
 def data_splitter(documents):
@@ -102,7 +95,7 @@ def data_splitter(documents):
 def generate_faiss(split_docs):
     documents = [Document(page_content=text) for text in split_docs]
     vectorstore_faiss = FAISS.from_documents(
-        split_docs,
+        documents,
         bedrock_embeddings  
     )
     return vectorstore_faiss
@@ -110,16 +103,16 @@ def generate_faiss(split_docs):
 # Save the generated FAISS vectors in S3
 def save_faiss_s3(faiss_index):
     s3 = boto3.client('s3')
-    faiss_bytes = BytesIO()
-    faiss_index.save_index(faiss_bytes)
-    faiss_bytes.seek(0)
+    local_path = '/tmp/faiss_index'
 
-    try:
-        s3.put_object(Bucket=bucket_name, Key=s3_faiss, Body=faiss_bytes.getvalue())
-        print("FAISS index saved to S3")
-    except Exception as e:
-        print(f"Error when saving the FAISS index to S3: {e}")
+    # Save the FAISS index to a local file
+    faiss_index.save_local(local_path)
 
+    # Read the local file and upload it to S3
+    with open(local_path, 'rb') as f:
+        s3.put_object(Bucket=bucket_name, Key=s3_faiss, Body=f.read())
+
+    print("FAISS index saved to S3")
 
 def generate_vectors():
     list_text = get_documents_from_s3(bucket_name,prefix)

@@ -11,6 +11,8 @@ pip install langchain
 pip install langchain-community
 pip install pytesseract pillow
 sudo apt-get install awscli
+pip install faiss-cpu
+
 
 # if you want to use open awscli
 pip install langchain-openai
