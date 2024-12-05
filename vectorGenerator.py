@@ -13,13 +13,16 @@ import pytesseract
 from PIL import Image
 from langchain_community.embeddings import BedrockEmbeddings
 import datetime
+from fastapi import FastAPI, HTTPException
+import uvicorn
+
 
 bucket_name = 'capleasemanager'
 prefix = 'lease/'
 s3_faiss='faiss/'
 bedrock=boto3.client(service_name="bedrock-runtime")
 bedrock_embeddings=BedrockEmbeddings(model_id="amazon.titan-embed-text-v1",client=bedrock)
-
+app=FastAPI()
 
 #Get the documents
 def get_documents_from_s3(s3_bucket, prefix):
@@ -131,10 +134,19 @@ def generate_vectors():
     vectorstore_faiss= generate_faiss(splitted_text)
     save_faiss_s3(vectorstore_faiss)
     
-    
+# Creating API
+@app.post("/generate-vectors")
+def generate_vectors_endpoint():
+    try:
+        generate_vectors()
+        return {"message": "FAISS vectors generated and saved to S3 successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    generate_vectors()
+    import unvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+    #generate_vectors()
     # # Example usage
     # bucket_name = 'capleasemanager'
     # prefix = 'lease/'
