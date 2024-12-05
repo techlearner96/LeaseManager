@@ -12,7 +12,10 @@ pip install langchain-community
 pip install pytesseract pillow
 sudo apt-get install awscli
 pip install faiss-cpu
-
+pip install boto3
+-----------------------------
+once installed execute
+--> aws configure
 
 # if you want to use open awscli
 pip install langchain-openai

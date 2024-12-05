@@ -12,7 +12,7 @@ import os
 import pytesseract
 from PIL import Image
 from langchain_community.embeddings import BedrockEmbeddings
-
+import datetime
 
 bucket_name = 'capleasemanager'
 prefix = 'lease/'
@@ -101,18 +101,27 @@ def generate_faiss(split_docs):
     return vectorstore_faiss
 
 # Save the generated FAISS vectors in S3
+
 def save_faiss_s3(faiss_index):
     s3 = boto3.client('s3')
-    local_path = '/tmp/faiss_index'
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    directory = f'/tmp/faiss_index_{timestamp}'  # Use a unique directory name with timestamp
 
-    # Save the FAISS index to a local file
-    faiss_index.save_local(local_path)
+    # Ensure the directory exists
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
-    # Read the local file and upload it to S3
-    with open(local_path, 'rb') as f:
-        s3.put_object(Bucket=bucket_name, Key=s3_faiss, Body=f.read())
+    # Save the FAISS index to the local directory
+    faiss_index.save_local(directory)  # Save to the directory
 
-    print("FAISS index saved to S3")
+    # Read the local files and upload them to S3
+    for file in os.listdir(directory):
+        file_path = os.path.join(directory, file)
+        with open(file_path, 'rb') as f:
+            s3.put_object(Bucket=bucket_name, Key=s3_faiss + file, Body=f.read())
+
+    print(f"FAISS index saved to S3 from directory {directory}")
+
 
 def generate_vectors():
     list_text = get_documents_from_s3(bucket_name,prefix)
