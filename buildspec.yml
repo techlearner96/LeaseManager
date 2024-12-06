@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - pip install -r requirements.txt
+  build:
+    commands:
+      - docker build -t vector-generator-api .
+      - docker tag vector-generator-api:latest <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/vector-generator-api:latest
+      - $(aws ecr get-login --no-include-email --region <your-region>)
+      - docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/vector-generator-api:latest
+artifacts:
+  files:
+    - '**/*'
