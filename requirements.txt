@@ -9,25 +9,3 @@ langchain-community
 pillow
 faiss-cpu
 
-
-
-# commands to execute in local testing
-sudo apt-get update
-sudo apt-get install tesseract-ocr
-pip install langchain
-pip install langchain-community
-pip install pytesseract pillow
-sudo apt-get install awscli
-pip install faiss-cpu
-pip install boto3
-pip install fastapi uvicorn
-
------------------------------
-once installed execute
---> aws configure
-
-# if you want to use open awscli
-pip install langchain-openai
-
-#Default region- us-east-1
-`pip install -U :class:`~langchain-aws` and import as from :class:`~langchain_aws import BedrockEmbeddings``
