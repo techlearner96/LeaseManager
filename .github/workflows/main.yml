@@ -1,0 +1,29 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Build, tag, and push image to Docker Hub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+        run: |
+          docker build -t vector-generator-api .
+          docker tag vector-generator-api:latest $DOCKERHUB_USERNAME/vector-generator-api:latest
+          docker push $DOCKERHUB_USERNAME/vector-generator-api:latest
